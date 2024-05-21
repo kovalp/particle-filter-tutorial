@@ -1,0 +1,21 @@
+[tool.poetry]
+package-mode = false
+name = "particle-filter-tutorial"
+version = "0.1.0"
+description = "Particle filter tutorial by Jos Elfring"
+authors = ["Peter Koval <pkoval@vicomtech.org>"]
+license = "MIT License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+matplotlib = "^3.9.0"
+scipy = "^1.13.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+ruff = "^0.4.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
