@@ -21,7 +21,7 @@ def get_particle_filter_sir(world: World, num_particles: int = 1000) -> Particle
     measurement_noise = (meas_model_distance_std, meas_model_angle_std)
 
     # Set resampling algorithm used
-    algorithm = ResamplingAlgorithms.MULTINOMIAL
+    algorithm = ResamplingAlgorithms.SYSTEMATIC
 
     # Initialize SIR particle filter: resample every time step
     particle_filter_sir = ParticleFilterSIR(

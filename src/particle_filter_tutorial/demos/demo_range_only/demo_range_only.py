@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 # Simulation + plotting requires a robot, visualizer and world
-from src.particle_filter_tutorial.simulator import RobotRange, Visualizer, World
+from particle_filter_tutorial.simulator import RobotRange, Visualizer, World
 
 # Supported resampling methods (resampling algorithm enum for SIR and SIR-derived particle filters)
-from src.particle_filter_tutorial.core import ResamplingAlgorithms
+from particle_filter_tutorial.core.resampling import ResamplingAlgorithms
 
 # Particle filters
-from src.particle_filter_tutorial.core import ParticleFilterRangeOnly
+from particle_filter_tutorial.core.particle_filters import ParticleFilterRangeOnly
 
 # For showing plots (plt.show())
 import matplotlib.pyplot as plt
@@ -20,10 +20,10 @@ if __name__ == '__main__':
     # Set simulated world and visualization properties
     ##
     # world = World(10.0, 10.0, [[5.0, 5.0]])
-    world = World(10.0, 10.0, [[2.5, 2.5], [7.5, 7.5]])
+    world = World(10.0, 10.0, [(2.0, 8.0)])
 
     # Number of simulated time steps
-    n_time_steps = 10
+    n_time_steps = 200
 
     # Initialize visualization
     show_particle_pose = False  # only set to true for low #particles (very slow)
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # Particle filter settings
     ##
 
-    number_of_particles = 1000
+    number_of_particles = 2000
     pf_state_limits = [0, world.x_max, 0, world.y_max]
 
     # Process model noise (zero mean additive Gaussian noise)
@@ -104,4 +104,4 @@ if __name__ == '__main__':
 
         # Visualization
         visualizer.draw_world(world, robot, particle_filter.particles, hold_on=False, particle_color='g')
-        plt.pause(0.5)
+        plt.pause(0.1)
