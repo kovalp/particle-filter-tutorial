@@ -15,7 +15,7 @@ The main scripts are
 * ``demo_running_example``: runs the basic particle filter
 * ``demo_range_only``: runs the basic particle filter with a lower number of landmarks (illustrates the particle filter's ability to represent non-Gaussian distributions).
 
-Whenver running the code, a robot localization problem will be simulated. For most scripts, the visualization below should appear.
+Whenever running the code, a robot localization problem will be simulated. For most scripts, the visualization below should appear.
 
 ![alt text](https://github.com/jelfring/particle-filter-tutorial/blob/master/images/running_example_screenshot.png?raw=true)
 
@@ -32,7 +32,7 @@ The supported resampling algorithms are:
 Supported resampling schemes are:
 * Every time step
 * Based on approximated effective number of particles
-* Based on reciprocal of maximum particl weight
+* Based on reciprocal of maximum particle weight
 
 More advanced particle filters that are supported:
 * Adaptive particle filter
