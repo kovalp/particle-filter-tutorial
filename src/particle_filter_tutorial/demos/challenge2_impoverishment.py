@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 # Simulation + plotting requires a robot, visualizer and world
-from src.particle_filter_tutorial.simulator import Robot, Visualizer, World
+from particle_filter_tutorial.simulator import Robot, Visualizer, World
 
 # Supported resampling methods
-from src.particle_filter_tutorial.core import ResamplingAlgorithms
+from particle_filter_tutorial.core.resampling import ResamplingAlgorithms
 
 # Load variables
 from shared_simulation_settings import *
 
 # Particle filter
-from src.particle_filter_tutorial.core import ParticleFilterSIR
+from particle_filter_tutorial.core.particle_filters import ParticleFilterSIR
 
 # For showing plots (plt.show())
 import matplotlib.pyplot as plt
