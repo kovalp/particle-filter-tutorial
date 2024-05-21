@@ -1,5 +1,4 @@
 [tool.poetry]
-package-mode = false
 name = "particle-filter-tutorial"
 version = "0.1.0"
 description = "Particle filter tutorial by Jos Elfring"
