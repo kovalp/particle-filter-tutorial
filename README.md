@@ -1,9 +1,13 @@
 # Installation
-All code is written in Python. In order to run the code, the following packages must be installed:
+All code is written in Python. Poetry is used to track the package dependencies.
 
-* numpy 
-* matplotlib
-* scipy
+```commandline
+poetry install
+```
+
+
+
+
 
 # Documentation
 
@@ -11,9 +15,12 @@ Details on the algorithms, background information in general and an documentatio
 
 # Running the code
 
-The main scripts are
 * ``demo_running_example``: runs the basic particle filter
 * ``demo_range_only``: runs the basic particle filter with a lower number of landmarks (illustrates the particle filter's ability to represent non-Gaussian distributions).
+
+```commandline
+python src/particle_filter_tutorial/demos/demo_running_example/demo_running_example.py
+```
 
 Whenever running the code, a robot localization problem will be simulated. For most scripts, the visualization below should appear.
 
