@@ -1,7 +1,7 @@
 import numpy as np
 
 from particle_filter_tutorial.core.particle_filters.particle_filter_base import ParticleFilter
-from particle_filter_tutorial.core.resampling.resampler import Resampler
+from particle_filter_tutorial.core.resampling.resampler import Resampler, ResamplingAlgorithms
 
 
 class ParticleFilterSIR(ParticleFilter):
@@ -14,11 +14,11 @@ class ParticleFilterSIR(ParticleFilter):
     """
 
     def __init__(self,
-                 number_of_particles,
-                 limits,
-                 process_noise,
-                 measurement_noise,
-                 resampling_algorithm):
+                 number_of_particles: int,
+                 limits: tuple[float, float, float, float],
+                 process_noise: tuple[float, float],
+                 measurement_noise: tuple[float, float],
+                 resampling_algorithm: ResamplingAlgorithms):
         """
         Initialize the SIR particle filter.
 
@@ -60,16 +60,16 @@ class ParticleFilterSIR(ParticleFilter):
 
         # Loop over all particles
         new_particles = []
-        for par in self.particles:
+        for (weight, sample) in self.particles:
 
             # Propagate the particle state according to the current particle
-            propagated_state = self.propagate_sample(par[1], robot_forward_motion, robot_angular_motion)
+            propagated_state = self.propagate_sample(sample, robot_forward_motion, robot_angular_motion)
 
             # Compute current particle's weight
-            weight = par[0] * self.compute_likelihood(propagated_state, measurements, landmarks)
+            new_weight = weight * self.compute_likelihood(propagated_state, measurements, landmarks)
 
             # Store
-            new_particles.append([weight, propagated_state])
+            new_particles.append((new_weight, propagated_state))
 
         # Update particles
         self.particles = self.normalize_weights(new_particles)

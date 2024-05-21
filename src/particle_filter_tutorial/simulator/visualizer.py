@@ -1,6 +1,8 @@
 """."""
 
 import matplotlib.pyplot as plt
+import matplotlib.collections
+
 import numpy as np
 from particle_filter_tutorial.simulator.world import World
 from particle_filter_tutorial.simulator.robot import Robot
@@ -51,7 +53,7 @@ class Visualizer:
         :param world: World object (includes dimensions and landmarks)
         :param robot: True robot 2D pose (x, y, heading)
         :param particles: Set of weighted particles (list of [weight, [x, y, heading]]-lists)
-        :param hold_on: Boolean that indicates whether figure must be cleared or nog
+        :param hold_on: Boolean that indicates whether figure must be cleared or not
         :param particle_color: Color used for particles (as matplotlib string)
         """
 
@@ -87,24 +89,40 @@ class Visualizer:
 
         # Add particles
         if self.draw_particle_pose:
-            # Warning: this is very slow for large numbers of particles
-            radius_scale_factor = len(particles) / 10.
-            for p in particles:
-                self.add_pose2d(p[1][0], p[1][1], p[1][2], 1, particle_color, radius_scale_factor * p[0])
+            ww = np.array([w for (w, _s) in particles])
+            ss = np.array([s for (_w, s) in particles])
+            radius_scale_factor = len(ww) / 10.0
+            self.add_poses_2d(ww, ss, particle_color, radius_scale_factor)
         else:
             # Convert to numpy array for efficiency reasons (drop weights)
             states = np.array([np.array(state_i[1]) for state_i in particles])
             plt.plot(states[:, 0], states[:, 1], particle_color+'.', linewidth=1, markersize=2)
 
         # Add robot pose
-        self.add_pose2d(robot.x, robot.y, robot.theta, 1, 'r', self.circle_radius_robot)
+        self.add_pose_2d(robot.x, robot.y, robot.theta, 1, 'r', self.circle_radius_robot)
 
-        plt.savefig('multimodal_one_landmark.png')
+    def add_poses_2d(self, weights: np.ndarray, samples: np.ndarray, color: str, scale_factor: float) -> None:
+        """."""
+        # Select correct figure
+        plt.figure(1)
+        ax = plt.gca()
+        ls_circles = []
+        for (r, (x, y, a)) in zip(weights * scale_factor, samples):
+            ls_circles.append(plt.Circle((x, y), r))
+        circles_collection = matplotlib.collections.PatchCollection(ls_circles)
+        circles_collection.set_edgecolor(color)
+        circles_collection.set_facecolor(color)
+        circles_collection.set_alpha(0.4)
+        circles_collection.set_zorder(20)
+        ax.add_collection(circles_collection)
 
-        # Show
-        plt.pause(0.05)
+        ls_bearings = []
+        for (r, (x, y, a)) in zip(weights * scale_factor, samples):
+            ls_bearings.append([[x, y], [x + r * np.cos(a), y + r * np.sin(a)]])
+        lines_collection = matplotlib.collections.LineCollection(np.array(ls_bearings))
+        ax.add_collection(lines_collection)
 
-    def add_pose2d(self, x, y, theta, fig_num, color, radius):
+    def add_pose_2d(self, x, y, theta, fig_num, color, radius):
         """
         Plot a 2D pose in given figure with given color and radius (circle with line indicating heading).
 

@@ -1,4 +1,5 @@
 """."""
+import copy
 
 import numpy as np
 
@@ -119,3 +120,13 @@ class Robot:
         :return: random sample from distribution with given parameters
         """
         return np.random.normal(loc=mu, scale=sigma, size=1)[0]
+
+
+def get_robot_without_noise(robot: Robot) -> Robot:
+    """."""
+    ideal_robot = copy.deepcopy(robot)
+    ideal_robot.std_meas_distance = 0.0
+    ideal_robot.std_meas_angle = 0.0
+    ideal_robot.std_forward = 0.0
+    ideal_robot.std_turn = 0.0
+    return ideal_robot
