@@ -14,7 +14,7 @@ class ParticleFilter:
         * Abstract class
     """
 
-    def __init__(self, number_of_particles, limits, process_noise, measurement_noise):
+    def __init__(self, number_of_particles: int, limits, process_noise, measurement_noise):
         """
         Initialize the abstract particle filter.
 
@@ -29,10 +29,10 @@ class ParticleFilter:
 
         # Initialize filter settings
         self.n_particles = number_of_particles
-        self.particles: list[tuple[float, list[float]]] = []
+        self.particles: list[tuple[float, np.ndarray]] = []
 
         # State related settings
-        self.state_dimension = 3  # x, y, theta
+        self.size = 3  # x, y, theta
         self.x_min = limits[0]
         self.x_max = limits[1]
         self.y_min = limits[0]
@@ -54,10 +54,10 @@ class ParticleFilter:
         for i in range(self.n_particles):
             # Add particle i
             self.particles.append(
-                (weight, [
+                (weight, np.array([
                     np.random.uniform(self.x_min, self.x_max, 1)[0],
                     np.random.uniform(self.y_min, self.y_max, 1)[0],
-                    np.random.uniform(0, 2 * np.pi, 1)[0]]
+                    np.random.uniform(0, 2 * np.pi, 1)[0]])
                  )
             )
 
@@ -72,7 +72,7 @@ class ParticleFilter:
         """
 
         # Check input dimensions
-        if len(mean_vector) != self.state_dimension or len(standard_deviation_vector) != self.state_dimension:
+        if len(mean_vector) != self.size or len(standard_deviation_vector) != self.size:
             raise ValueError("Means or state deviation vectors have incorrect length.")
 
         # Initialize particles with uniform weight distribution
@@ -81,12 +81,12 @@ class ParticleFilter:
         for i in range(self.n_particles):
 
             # Get state sample
-            state_i = np.random.normal(mean_vector, standard_deviation_vector, self.state_dimension).tolist()
+            state_i = np.random.normal(mean_vector, standard_deviation_vector, self.size)
 
             # Add particle i
             self.particles.append([weight, self.validate_state(state_i)])
 
-    def validate_state(self, state: list[float]) -> list[float]:
+    def validate_state(self, state: np.ndarray) -> np.ndarray:
         """Validate the state.
 
         State values outside allowed ranges will be corrected for assuming a 'cyclic world'.
@@ -148,27 +148,20 @@ class ParticleFilter:
         return np.array((avg_x, avg_y, avg_theta))
 
     def get_max_weight(self):
-        """
-        Find maximum weight in particle filter.
+        """Find maximum weight in particle filter.
 
         :return: Maximum particle weight
         """
         return max([weighted_sample[0] for weighted_sample in self.particles])
 
-    def print_particles(self):
-        """
-        Print all particles: index, state and weight.
-        """
-
-        print("Particles:")
-        for i in range(self.n_particles):
-            print(" ({}): {} with w: {}".format(i+1, self.particles[i][1], self.particles[i][0]))
+    def print_particles(self) -> None:
+        """Print all particles: index, state and weight."""
+        for i, (w, s) in enumerate(self.particles, start=0):
+            print("{}: {} {}".format(i, w, s))
 
     @staticmethod
-    def normalize_weights(weighted_samples: list[tuple[float, list[float]]]) -> list[tuple[float, list[float]]]:
-        """
-        Normalize all particle weights.
-        """
+    def normalize_weights(weighted_samples: list[tuple[float, np.ndarray]]) -> list[tuple[float, np.ndarray]]:
+        """Normalize all particle weights."""
 
         # Compute sum weighted samples
         sum_weights = 0.0
@@ -185,37 +178,37 @@ class ParticleFilter:
         return [(w / sum_weights, s) for (w, s) in weighted_samples]
 
     def propagate_sample(self,
-                         sample: list[float],
+                         state: np.ndarray,
                          forward_motion: float,
-                         angular_motion: float) -> list[float]:
+                         angular_motion: float) -> np.ndarray:
         """
         Propagate an individual sample with a simple motion model that assumes the robot rotates angular_motion rad and
         then moves forward_motion meters in the direction of its heading. Return the propagated sample (leave input
         unchanged).
 
-        :param sample: Sample (unweighted particle) that must be propagated
+        :param state: Sample (unweighted particle) that must be propagated
         :param forward_motion: Forward motion in meters
         :param angular_motion: Angular motion in radians
         :return: propagated sample
         """
         # 1. rotate by given amount plus additive noise sample (index 1 is angular noise standard deviation)
-        propagated_sample = copy.deepcopy(sample)
-        propagated_sample[2] += np.random.normal(angular_motion, self.process_noise[1], 1)[0]
+        propagated_state = copy.deepcopy(state)
+        propagated_state[2] += np.random.normal(angular_motion, self.process_noise[1], 1)[0]
 
         # Compute forward motion by combining deterministic forward motion with additive zero mean Gaussian noise
         forward_displacement = np.random.normal(forward_motion, self.process_noise[0], 1)[0]
 
         # 2. move forward
-        propagated_sample[0] += forward_displacement * np.cos(propagated_sample[2])
-        propagated_sample[1] += forward_displacement * np.sin(propagated_sample[2])
+        propagated_state[0] += forward_displacement * np.cos(propagated_state[2])
+        propagated_state[1] += forward_displacement * np.sin(propagated_state[2])
 
         # Make sure we stay within cyclic world
-        return self.validate_state(propagated_sample)
+        return self.validate_state(propagated_state)
 
     def compute_likelihood(self,
-                           sample: list[float],
+                           sample: np.ndarray,
                            measurement: list[np.ndarray],
-                           landmarks: list[tuple[float, float]]):
+                           landmarks: list[tuple[float, float]]) -> float:
         """
         Compute likelihood p(z|sample) for a specific measurement given sample state and landmarks.
 
@@ -231,7 +224,6 @@ class ParticleFilter:
 
         # Loop over all landmarks for current particle
         for i, lm in enumerate(landmarks):
-
             # Compute expected measurement assuming the current particle state
             dx = sample[0] - lm[0]
             dy = sample[1] - lm[1]
@@ -266,3 +258,22 @@ class ParticleFilter:
         """
 
         pass
+
+    def get_new_particles(self,
+                          robot_forward_motion: float,
+                          robot_angular_motion: float,
+                          measurements: list[np.ndarray],
+                          landmarks: list[tuple[float, float]]
+                          ) -> list[tuple[float, np.ndarray]]:
+        # Loop over all particles
+        new_particles = []
+        for (weight, sample) in self.particles:
+            # Propagate the particle state according to the current particle
+            propagated_state = self.propagate_sample(sample, robot_forward_motion, robot_angular_motion)
+
+            # Compute current particle's weight
+            new_weight = weight * self.compute_likelihood(propagated_state, measurements, landmarks)
+
+            new_particles.append((new_weight, propagated_state))
+
+        return new_particles

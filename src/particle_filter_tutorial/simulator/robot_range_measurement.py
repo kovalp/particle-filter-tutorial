@@ -8,8 +8,7 @@ from particle_filter_tutorial.simulator.robot import Robot
 class RobotRange(Robot):
 
     def __init__(self, x, y, theta, std_forward, std_turn, std_meas_distance):
-        """
-        Initialize the robot with given 2D pose. In addition set motion uncertainty parameters.
+        """Initialize the robot with given 2D pose and a set of motion uncertainty parameters.
 
         :param x: Initial robot x-position (m)
         :param y: Initial robot y-position (m)

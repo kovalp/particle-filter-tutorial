@@ -1,4 +1,4 @@
-from particle_filter_tutorial.core.particle_filters.particle_filter_base import ParticleFilter
+from particle_filter_tutorial.core.particle_filters.base import ParticleFilter
 from particle_filter_tutorial.core.resampling import naive_search, cumulative_sum
 
 import numpy as np

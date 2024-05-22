@@ -3,9 +3,8 @@ import math
 import numpy as np
 
 from particle_filter_tutorial.simulator import Robot, World
-from particle_filter_tutorial.simulator.robot import get_robot_without_noise
-from particle_filter_tutorial.demos.demo_running_example.particle_filter import get_particle_filter_sir
-from particle_filter_tutorial.demos.demo_running_example.visualizer import get_visualizer
+from particle_filter_tutorial.demos.particle_filter_factory import get_particle_filter_sir
+from particle_filter_tutorial.demos.demo_running_example.visualizer_factory import get_visualizer
 
 import matplotlib.pyplot as plt
 

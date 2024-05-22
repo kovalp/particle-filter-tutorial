@@ -1,6 +1,6 @@
 import numpy as np
 
-from particle_filter_tutorial.core.particle_filters.particle_filter_base import ParticleFilter
+from particle_filter_tutorial.core.particle_filters.base import ParticleFilter
 from particle_filter_tutorial.core.resampling.resampler import Resampler, ResamplingAlgorithms
 
 
@@ -57,21 +57,7 @@ class ParticleFilterSIR(ParticleFilter):
         :param measurements: Measurements.
         :param landmarks: Landmark positions.
         """
-
-        # Loop over all particles
-        new_particles = []
-        for (weight, sample) in self.particles:
-
-            # Propagate the particle state according to the current particle
-            propagated_state = self.propagate_sample(sample, robot_forward_motion, robot_angular_motion)
-
-            # Compute current particle's weight
-            new_weight = weight * self.compute_likelihood(propagated_state, measurements, landmarks)
-
-            # Store
-            new_particles.append((new_weight, propagated_state))
-
-        # Update particles
+        new_particles = self.get_new_particles(robot_forward_motion, robot_angular_motion, measurements, landmarks)
         self.particles = self.normalize_weights(new_particles)
 
         # Resample if needed

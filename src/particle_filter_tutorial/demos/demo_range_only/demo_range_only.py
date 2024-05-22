@@ -58,8 +58,7 @@ if __name__ == '__main__':
     # Particle filter settings
     ##
 
-    number_of_particles = 2000
-    pf_state_limits = [0, world.x_max, 0, world.y_max]
+    number_of_particles = 1000
 
     # Process model noise (zero mean additive Gaussian noise)
     motion_model_forward_std = 0.1
@@ -76,8 +75,8 @@ if __name__ == '__main__':
 
     # Initialize SIR particle filter with range only measurements
     particle_filter = ParticleFilterRangeOnly(
-        number_of_particles=number_of_particles,
-        limits=pf_state_limits,
+        num_particles=number_of_particles,
+        limits=(0.0, world.x_max, 0.0, world.y_max),
         process_noise=process_noise,
         measurement_noise=measurement_noise,
         resampling_algorithm=algorithm)

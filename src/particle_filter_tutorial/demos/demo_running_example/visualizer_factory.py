@@ -1,6 +1,6 @@
 """."""
 
-from particle_filter_tutorial.simulator.visualizer import Visualizer
+from particle_filter_tutorial.viz.visualizer import Visualizer
 
 
 def get_visualizer(show_particle_pose: bool = False) -> Visualizer:
