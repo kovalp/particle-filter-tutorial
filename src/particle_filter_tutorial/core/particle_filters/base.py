@@ -5,6 +5,9 @@ import copy
 import numpy as np
 
 
+PST = list[tuple[float, np.ndarray]]
+
+
 class ParticleFilter:
     """
     Notes:
@@ -14,7 +17,10 @@ class ParticleFilter:
         * Abstract class
     """
 
-    def __init__(self, number_of_particles: int, limits, process_noise, measurement_noise):
+    def __init__(self, number_of_particles: int,
+                 limits: tuple[float, float, float, float],
+                 process_noise: tuple[float, float],
+                 measurement_noise: tuple[float, float]) -> None:
         """
         Initialize the abstract particle filter.
 
@@ -29,7 +35,7 @@ class ParticleFilter:
 
         # Initialize filter settings
         self.n_particles = number_of_particles
-        self.particles: list[tuple[float, np.ndarray]] = []
+        self.particles: PST = []
 
         # State related settings
         self.size = 3  # x, y, theta
@@ -84,7 +90,7 @@ class ParticleFilter:
             state_i = np.random.normal(mean_vector, standard_deviation_vector, self.size)
 
             # Add particle i
-            self.particles.append([weight, self.validate_state(state_i)])
+            self.particles.append((weight, self.validate_state(state_i)))
 
     def validate_state(self, state: np.ndarray) -> np.ndarray:
         """Validate the state.

@@ -5,6 +5,7 @@
 from enum import Enum
 import copy
 import numpy as np
+from particle_filter_tutorial.core.particle_filters.base import PST
 from particle_filter_tutorial.core.resampling.helpers import (cumulative_sum, naive_search, replication,
                                                               add_weights_to_samples)
 
@@ -17,36 +18,34 @@ class ResamplingAlgorithms(Enum):
 
 
 class Resampler:
-    """
-    Resample class that implements different resampling methods.
-    """
+    """Resample class that implements different resampling methods."""
 
     def __init__(self):
         self.initialized = True
 
-    def resample(self, samples, N, algorithm):
+    def resample(self, samples: PST, n: int, algorithm: ResamplingAlgorithms) -> PST:
         """
         Resampling interface, perform resampling using specified method
 
         :param samples: List of (weight, sample)-lists that need to be resampled
-        :param N: Number of samples that must be resampled.
+        :param n: Number of samples that must be resampled.
         :param algorithm: Preferred method used for resampling.
         :return: List of weighted samples.
         """
 
         if algorithm is ResamplingAlgorithms.MULTINOMIAL:
-            return self.__multinomial(samples, N)
+            return self.__multinomial(samples, n)
         elif algorithm is ResamplingAlgorithms.RESIDUAL:
-            return self.__residual(samples, N)
+            return self.__residual(samples, n)
         elif algorithm is ResamplingAlgorithms.STRATIFIED:
-            return self.__stratified(samples, N)
+            return self.__stratified(samples, n)
         elif algorithm is ResamplingAlgorithms.SYSTEMATIC:
-            return self.__systematic(samples, N)
+            return self.__systematic(samples, n)
 
         print("Resampling method {} is not specified!".format(algorithm))
 
     @staticmethod
-    def __multinomial(samples, N):
+    def __multinomial(samples: PST, n: int) -> PST:
         """
         Particles are sampled with replacement proportional to their weight and in arbitrary order. This leads
         to a maximum variance on the number of times a particle will be resampled, since any particle will be
@@ -55,32 +54,19 @@ class Resampler:
         Computational complexity: O(N log(M)
 
         :param samples: Samples that must be resampled.
-        :param N: Number of samples that must be generated.
+        :param n: Number of samples that must be generated.
         :return: Resampled weighted particles.
         """
+        weights = np.fromiter((w for w, c in samples), dtype=float)
+        qq = cumulative_sum(weights)
 
-        # Get list with only weights
-        weights = [weighted_sample[0] for weighted_sample in samples]
-
-        # Compute cumulative sum
-        Q = cumulative_sum(weights)
-
-        # As long as the number of new samples is insufficient
-        n = 0
+        i = 0         # As long as the number of new samples is insufficient
         new_samples = []
-        while n < N:
-
-            # Draw a random sample u
-            u = np.random.uniform(1e-6, 1, 1)[0]
-
-            # Naive search (alternative: binary search)
-            m = naive_search(Q, u)
-
-            # Add copy of the state sample (uniform weights)
-            new_samples.append([1.0/N, copy.deepcopy(samples[m][1])])
-
-            # Added another sample
-            n += 1
+        while i < n:
+            u = np.random.uniform(1e-6, 1.0, 1)[0]  # Draw a random sample u
+            m = naive_search(qq, u)  # Naive search (alternative: binary search)
+            new_samples.append((1.0 / n, np.array(samples[m][1].copy())))
+            i += 1
 
         return new_samples
 
@@ -110,7 +96,7 @@ class Resampler:
             Nm = np.floor(N * wm)
 
             # Store weight adjusted sample (and avoid division of integers)
-            weight_adjusted_samples.append([wm - float(Nm) / N, xm])
+            weight_adjusted_samples.append((wm - float(Nm) / N, xm))
 
             # Store sample to be used for replication
             replication_samples.append([xm, int(Nm)])
@@ -122,7 +108,9 @@ class Resampler:
         # Normalize new weights if needed
         if N != Nt:
             for m in range(0, M):
-                weight_adjusted_samples[m][0] *= float(N) / (N - Nt)
+                cycle_sample = weight_adjusted_samples[m]
+                adjusted_weight = cycle_sample[0] * float(N) / (N - Nt)
+                weight_adjusted_samples[m] = (adjusted_weight, cycle_sample[1])
 
         # Resample remaining samples (__multinomial return weighted samples, discard weights)
         new_samples_stochastic = [s[1] for s in self.__multinomial(weight_adjusted_samples, N - Nt)]
@@ -132,7 +120,7 @@ class Resampler:
         return weighted_new_samples
 
     @staticmethod
-    def __stratified(samples, N):
+    def __stratified(samples: PST, N) -> PST:
         """
         Loop over cumulative sum once hence particles should keep same order (however some disappear, others are
         replicated).
@@ -166,7 +154,7 @@ class Resampler:
                 m += 1  # no need to reset m, u always increases
 
             # Add state sample (weight, state)
-            new_samples.append([1.0/N, copy.deepcopy(samples[m][1])])
+            new_samples.append((1.0/N, copy.deepcopy(samples[m][1])))
 
             # Added another sample
             n += 1
@@ -175,7 +163,7 @@ class Resampler:
         return new_samples
 
     @staticmethod
-    def __systematic(samples, N):
+    def __systematic(samples, N) -> PST:
         """
         Loop over cumulative sum once hence particles should keep same order (however some disappear, other are
         replicated). Variance on number of times a particle will be selected lower than with stratified resampling.
@@ -209,7 +197,7 @@ class Resampler:
                 m += 1
 
             # Add state sample (uniform weights)
-            new_samples.append([1.0/N, copy.deepcopy(samples[m][1])])
+            new_samples.append((1.0/N, copy.deepcopy(samples[m][1])))
 
             # Added another sample
             n += 1

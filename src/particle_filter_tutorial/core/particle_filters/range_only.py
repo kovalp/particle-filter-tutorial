@@ -79,7 +79,11 @@ class ParticleFilterRangeOnly(ParticleFilter):
         # Return importance weight based on all landmarks
         return measurement_likelihood_sample
 
-    def update(self, robot_forward_motion, robot_angular_motion, measurements, landmarks):
+    def update(self,
+               robot_forward_motion: float,
+               robot_angular_motion: float,
+               measurements: list[np.ndarray],
+               landmarks: list[tuple[float, float]]) -> None:
         """
         Process a measurement given the measured robot displacement and resample if needed.
 
@@ -88,23 +92,7 @@ class ParticleFilterRangeOnly(ParticleFilter):
         :param measurements: Measurements.
         :param landmarks: Landmark positions.
         """
-
-        # Loop over all particles
-        new_particles = []
-        for par in self.particles:
-
-            # Propagate the particle state according to the current particle
-            propagated_state = self.propagate_sample(par[1], robot_forward_motion, robot_angular_motion)
-
-            # Compute current particle's weight
-            weight = par[0] * self.compute_likelihood(propagated_state, measurements, landmarks)
-
-            # Store
-            new_particles.append((weight, propagated_state))
-
-        # Update particles
+        new_particles = self.get_new_particles(robot_forward_motion, robot_angular_motion, measurements, landmarks)
         self.particles = self.normalize_weights(new_particles)
-
-        # Resample if needed
         if self.needs_resampling():
             self.particles = self.resampler.resample(self.particles, self.n_particles, self.resampling_algorithm)
