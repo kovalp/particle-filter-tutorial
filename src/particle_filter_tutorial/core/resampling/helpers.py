@@ -3,14 +3,14 @@
 import numpy as np
 
 
-def cumulative_sum(weights):
+def cumulative_sum(weights: np.ndarray) -> np.ndarray:
     """
     Compute cumulative sum of a list of scalar weights
 
     :param weights: list with weights
     :return: list containing cumulative weights, length equal to length input
     """
-    return np.cumsum(weights).tolist()
+    return np.cumsum(weights)
 
 
 def replication(samples):
@@ -36,7 +36,7 @@ def replication(samples):
     return [l for s in samples for l in s[1] * [s[0]]]
 
 
-def naive_search(cumulative_list, x):
+def naive_search(cumulative_list: np.ndarray, x: float):
     """
     Find the index i for which cumulativeList[i-1] < x <= cumulativeList[i] within cumulativeList[lower:upper].
 
